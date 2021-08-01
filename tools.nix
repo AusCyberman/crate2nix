@@ -175,7 +175,7 @@ rec {
     in
     {
       url = builtins.head splitQuestion;
-      inherit ref;
+      ref = builtins.trace ref ref;
       rev = lib.removePrefix "rev=" (lib.last t);
     };
 
