@@ -164,17 +164,21 @@ rec {
     # Extracts URL and rev from a git source URL.
     #
     # Crude, should be more robust :(
-    parseGitSource = source:
-      assert builtins.isString source;
-      let
-        withoutGitPlus = lib.removePrefix "git+" source;
-        splitHash = lib.splitString "#" withoutGitPlus;
-        splitQuestion = lib.concatMap (lib.splitString "?") splitHash;
-      in
-      {
-        url = builtins.head splitQuestion;
-        rev = lib.last splitQuestion;
-      };
+     parseGitSource = source:
+    assert builtins.isString source;
+    let
+      withoutGitPlus = lib.removePrefix "git+" source;
+      splitHash = lib.splitString "#" withoutGitPlus;
+      splitQuestion = lib.concatMap (lib.splitString "?") splitHash;
+      t = builtins.tail splitQuestion;
+      ref = if builtins.length t == 2 then lib.removePrefix "branch=" (builtins.head t) else null;
+    in
+    {
+      url = builtins.head splitQuestion;
+      inherit ref;
+      rev = lib.last t;
+    };
+
 
     vendorSupport = { crateDir ? ./., ... }:
       rec {
@@ -234,7 +238,7 @@ rec {
             src = builtins.fetchGit {
               submodules = true;
               inherit (parsed) url rev;
-              ref = attrs.branch or "master";
+              ref = parsed.branch or attrs.branch or "master";
             };
             hash = pkgs.runCommand "hash-of-${attrs.name}" { nativeBuildInputs = [ pkgs.nix ]; } ''
               echo -n "$(nix-hash --type sha256 ${src})" > $out
@@ -296,7 +300,7 @@ rec {
               [source."${parsed.url}"]
               git = "${parsed.url}"
               rev = "${parsed.rev}"
-              ${lib.optionalString (isNull (builtins.match ".*\\?rev=[0-9a-z]{40}.*" source)) ''branch = "${attrs.branch or "master"}"''}
+              ${lib.optionalString (isNull (builtins.match ".*\\?rev=[0-9a-z]{40}.*" source)) ''branch = "${parsed.ref or attrs.branch or "master"}"''}
               replace-with = "vendored-sources"
               '';
             gitSources = packagesByType."git" or [ ];
