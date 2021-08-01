@@ -164,20 +164,21 @@ rec {
     # Extracts URL and rev from a git source URL.
     #
     # Crude, should be more robust :(
-     parseGitSource = source:
+       parseGitSource = source:
     assert builtins.isString source;
     let
       withoutGitPlus = lib.removePrefix "git+" source;
       splitHash = lib.splitString "#" withoutGitPlus;
       splitQuestion = lib.concatMap (lib.splitString "?") splitHash;
-      t = builtins.tail splitQuestion;
-      ref = if builtins.length t == 2 then lib.removePrefix "branch=" (builtins.head t) else null;
+      t = builtins.trace "${builtins.head  splitQuestion}"  (builtins.tail splitQuestion);
+      ref = if lib.hasPrefix "branch=" (builtins.head t) then lib.removePrefix "branch=" (builtins.head t) else null;
     in
     {
       url = builtins.head splitQuestion;
       inherit ref;
-      rev = lib.last t;
+      rev = lib.removePrefix "rev=" (lib.last t);
     };
+
 
 
     vendorSupport = { crateDir ? ./., ... }:
