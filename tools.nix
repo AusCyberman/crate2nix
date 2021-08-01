@@ -171,7 +171,7 @@ rec {
       splitHash = lib.splitString "#" withoutGitPlus;
       splitQuestion = lib.concatMap (lib.splitString "?") splitHash;
       t = builtins.trace "${builtins.head  splitQuestion}"  (builtins.tail splitQuestion);
-      ref = if lib.hasPrefix "branch=" (builtins.head t) then lib.removePrefix "branch=" (builtins.head t) else null;
+      ref = if lib.hasPrefix "branch=" (builtins.head t) then lib.removePrefix "branch=" (builtins.head t) else "master";
     in
     {
       url = builtins.head splitQuestion;
