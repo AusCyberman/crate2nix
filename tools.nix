@@ -238,7 +238,7 @@ rec {
             src = builtins.fetchGit {
               submodules = true;
               inherit (parsed) url rev;
-              ref = parsed.branch or attrs.branch or "master";
+              ref = parsed.ref or attrs.branch or "master";
             };
             hash = pkgs.runCommand "hash-of-${attrs.name}" { nativeBuildInputs = [ pkgs.nix ]; } ''
               echo -n "$(nix-hash --type sha256 ${src})" > $out
